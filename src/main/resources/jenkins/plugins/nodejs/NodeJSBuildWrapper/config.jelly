@@ -33,7 +33,7 @@ THE SOFTWARE.
     </f:entry>
 
     <f:entry title="${%configId.title}">
-    	<cf:select field="configId" configs="${descriptor.configs}" allowsEmpty="true" emptyValue="" emptyLabel="${%configId.emptyValue}" />
+        <cf:select field="configId" configs="${descriptor.getConfigs(it)}" allowsEmpty="true" emptyValue="" emptyLabel="${%configId.emptyValue}" />
     </f:entry>
     
 </j:jelly>

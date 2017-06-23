@@ -11,8 +11,9 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.lib.configprovider.model.Config;
 import org.jenkinsci.lib.configprovider.model.ConfigFile;
 import org.jenkinsci.lib.configprovider.model.ConfigFileManager;
-import org.jenkinsci.plugins.configfiles.GlobalConfigFiles;
+import org.jenkinsci.plugins.configfiles.ConfigFiles;
 import org.jenkinsci.plugins.configfiles.common.CleanTempFilesAction;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -24,6 +25,7 @@ import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
+import hudson.model.ItemGroup;
 import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -151,12 +153,19 @@ public class NodeJSBuildWrapper extends SimpleBuildWrapper {
             return NodeJSUtils.getInstallations();
         }
 
-        public Collection<Config> getConfigs() {
-            return GlobalConfigFiles.get().getConfigs(NPMConfigProvider.class);
+        /**
+         * Gather all defined npmrc config files.
+         *
+         * @return a collection of user npmrc files or {@code empty} if no one
+         *         defined.
+         */
+        public Collection<Config> getConfigs(AbstractProject<?, ?> project) {
+            ItemGroup<?> parent = project.getParent();
+            return ConfigFiles.getConfigsInContext(parent, NPMConfigProvider.class);
         }
 
-        public FormValidation doCheckConfigId(@CheckForNull @QueryParameter final String configId) {
-            NPMConfig config = (NPMConfig) GlobalConfigFiles.get().getById(configId);
+        public FormValidation doCheckConfigId(@CheckForNull @QueryParameter final String configId, @AncestorInPath AbstractProject project) {
+            NPMConfig config = ConfigFiles.getByIdOrNull(project, configId);
             if (config != null) {
                 try {
                     config.doVerify();
